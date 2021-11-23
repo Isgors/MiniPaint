@@ -10,8 +10,6 @@ class MyCanvasView(context : Context) : View(context) {
 
     private lateinit var cacheCanvas: Canvas
     private lateinit var cacheBitmap: Bitmap
-
-
     private val backgroundColor = ContextCompat.getColor(context, R.color.colorBackground)
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -23,5 +21,10 @@ class MyCanvasView(context : Context) : View(context) {
         cacheBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         cacheCanvas = Canvas(cacheBitmap)
         cacheCanvas.drawColor(backgroundColor)
+    }
+
+    override fun onDraw(canvas: Canvas?) {
+        super.onDraw(canvas)
+        canvas?.drawBitmap(cacheBitmap, 0f, 0f, null)
     }
 }
