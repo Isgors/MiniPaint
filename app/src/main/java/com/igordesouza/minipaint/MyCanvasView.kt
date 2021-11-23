@@ -12,9 +12,12 @@ private const val STROKE_WIDTH = 12f // has to be float
 
 class MyCanvasView(context : Context) : View(context) {
 
-    private lateinit var cacheCanvas: Canvas
-    private lateinit var cacheBitmap: Bitmap
-    private val backgroundColor = ContextCompat.getColor(context, R.color.colorBackground)
+    // Path representing the drawing so far
+    private val drawing = Path()
+
+    // Path representing what's currently being drawn
+    private val curPath = Path()
+
     private val drawColor = ContextCompat.getColor(context, R.color.colorPaint)
 
     // Set up the paint with which to draw.
@@ -30,8 +33,6 @@ class MyCanvasView(context : Context) : View(context) {
         strokeWidth = STROKE_WIDTH // default: Hairline-width (really thin)
     }
 
-    private var path = Path()
-
     private var motionTouchEventX = 0f
     private var motionTouchEventY = 0f
     private var currentX = 0f
@@ -45,14 +46,6 @@ class MyCanvasView(context : Context) : View(context) {
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-
-        if(::cacheBitmap.isInitialized)
-            cacheBitmap.recycle()
-
-        cacheBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
-        cacheCanvas = Canvas(cacheBitmap)
-        cacheCanvas.drawColor(backgroundColor)
-
         // Calculate a rectangular frame around the picture.
         val inset = 40
         frame = Rect(inset, inset, w - inset, h - inset)
@@ -60,7 +53,12 @@ class MyCanvasView(context : Context) : View(context) {
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        canvas?.drawBitmap(cacheBitmap, 0f, 0f, null)
+        // Draw the drawing so far
+        canvas?.drawPath(drawing, paint)
+        // Draw any current squiggle
+        canvas?.drawPath(curPath, paint)
+        // Draw a frame around the canvas
+        canvas?.drawRect(frame, paint)
         canvas?.drawRect(frame, paint)
     }
 
@@ -83,8 +81,8 @@ class MyCanvasView(context : Context) : View(context) {
     }
 
     private fun touchStart() {
-        path.reset()
-        path.moveTo(motionTouchEventX, motionTouchEventY)
+        curPath.reset()
+        curPath.moveTo(motionTouchEventX, motionTouchEventY)
         currentX = motionTouchEventX
         currentY = motionTouchEventY
     }
@@ -95,17 +93,17 @@ class MyCanvasView(context : Context) : View(context) {
         if (dx >= touchTolerance || dy >= touchTolerance) {
             // QuadTo() adds a quadratic bezier from the last point,
             // approaching control point (x1,y1), and ending at (x2,y2).
-            path.quadTo(currentX, currentY, (motionTouchEventX + currentX) / 2, (motionTouchEventY + currentY) / 2)
+            curPath.quadTo(currentX, currentY, (motionTouchEventX + currentX) / 2, (motionTouchEventY + currentY) / 2)
             currentX = motionTouchEventX
             currentY = motionTouchEventY
-            // Draw the path in the extra bitmap to cache it.
-            cacheCanvas.drawPath(path, paint)
         }
         invalidate()
     }
 
     private fun touchUp() {
-        // Reset the path so it doesn't get drawn again.
-        path.reset()
+        // Add the current path to the drawing so far
+        drawing.addPath(curPath)
+        // Rewind the current path for the next touch
+        curPath.reset()
     }
 }

@@ -13,6 +13,7 @@ class MainActivity : AppCompatActivity() {
         val myCanvasView = MyCanvasView(this)
         setViewVisibilityFullscreen(myCanvasView)
         myCanvasView.contentDescription = getString(R.string.canvasContentDescription)
+        myCanvasView.setBackgroundResource(R.color.colorBackground)
         setContentView(myCanvasView)
     }
 
