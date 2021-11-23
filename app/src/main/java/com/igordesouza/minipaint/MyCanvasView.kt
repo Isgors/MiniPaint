@@ -42,6 +42,8 @@ class MyCanvasView(context : Context) : View(context) {
 
     private val touchTolerance = ViewConfiguration.get(context).scaledTouchSlop
 
+    private lateinit var event: MotionEvent
+
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
 
@@ -59,17 +61,21 @@ class MyCanvasView(context : Context) : View(context) {
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-        motionTouchEventX = event!!.x
+        this.event = event!!
+        motionTouchEventX = event.x
         motionTouchEventY = event.y
+        performClick()
+        return true
+    }
 
+    override fun performClick(): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> touchStart()
             MotionEvent.ACTION_MOVE -> touchMove()
             MotionEvent.ACTION_UP -> touchUp()
         }
 
-        performClick()
-        return true
+        return super.performClick()
     }
 
     private fun touchStart() {
